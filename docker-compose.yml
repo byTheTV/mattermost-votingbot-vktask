@@ -21,7 +21,17 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data:rw
 
+  tarantool:
+    image: tarantool/tarantool:2.10
+    ports:
+      - "3301:3301"
+    volumes:
+      - tarantool_data:/var/lib/tarantool
+      - ./tarantool_init.lua:/opt/tarantool/init.lua
+    restart: always
+
 volumes:
   mattermost_data:
   mattermost_config:
   postgres_data:
+  tarantool_data:

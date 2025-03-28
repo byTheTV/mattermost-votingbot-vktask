@@ -5,6 +5,7 @@ go 1.24.0
 require (
 	github.com/joho/godotenv v1.5.1
 	github.com/mattermost/mattermost-server/v6 v6.7.2
+	github.com/tarantool/go-tarantool/v2 v2.3.0
 )
 
 require (
@@ -35,6 +36,7 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rs/xid v1.4.0 // indirect
 	github.com/sirupsen/logrus v1.8.1 // indirect
+	github.com/tarantool/go-iproto v1.1.0 // indirect
 	github.com/tinylib/msgp v1.1.6 // indirect
 	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
