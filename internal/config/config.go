@@ -1,15 +1,15 @@
 package config
 
 type Config struct {
-    MattermostURL  string
-    BotToken       string
-    TarantoolAddr  string
+	MattermostURL string
+	BotToken      string
+	TarantoolAddr string
 }
 
 func Load() *Config {
-    return &Config{
-        MattermostURL: "https://mattermost.example.com",
-        BotToken:      "your-bot-token",
-        TarantoolAddr: "localhost:3301",
-    }
+	return &Config{
+		MattermostURL: "http://localhost:8065",
+		BotToken:      "f9zwqh7rsfrb9n5iymeng95rbo",
+		TarantoolAddr: "localhost:3301",
+	}
 }

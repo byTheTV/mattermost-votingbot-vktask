@@ -3,7 +3,7 @@ package models
 import (
     "fmt"
     "log"
-    
+    "strings"
     "github.com/mattermost/mattermost-server/v6/model"
 )
 
@@ -13,22 +13,21 @@ type Bot struct {
 	User   *model.User            // Информация о самом боте
 }
 
-// NewBot создаёт и настраивает экземпляр бота
 func NewBot(serverURL, token string) (*Bot, error) {
-    // Инициализация REST-клиента
+    // Преобразуем HTTP URL в WebSocket URL
+    wsURL := convertToWebsocketURL(serverURL)
+
     client := model.NewAPIv4Client(serverURL)
     client.SetToken(token)
 
-    // Получение информации о боте
     user, _, err := client.GetMe("")
     if err != nil {
-        return nil, fmt.Errorf("ошибка аутентификации: %v", err)
+        return nil, fmt.Errorf("ошибка авторизации: %v", err)
     }
 
-    // Подключение WebSocket
-    ws, err := model.NewWebSocketClient4(serverURL, token)
+    ws, err := model.NewWebSocketClient4(wsURL, token)
     if err != nil {
-        return nil, fmt.Errorf("ошибка подключения WebSocket: %v", err)
+        return nil, fmt.Errorf("ошибка WebSocket: %v", err)
     }
 
     return &Bot{
@@ -36,6 +35,17 @@ func NewBot(serverURL, token string) (*Bot, error) {
         Ws:     ws,
         User:   user,
     }, nil
+}
+
+// Преобразование URL для WebSocket
+func convertToWebsocketURL(serverURL string) string {
+    if strings.HasPrefix(serverURL, "http://") {
+        return strings.Replace(serverURL, "http://", "ws://", 1)
+    }
+    if strings.HasPrefix(serverURL, "https://") {
+        return strings.Replace(serverURL, "https://", "wss://", 1)
+    }
+    return serverURL 
 }
 
 // Listen запускает прослушивание событий через WebSocket
