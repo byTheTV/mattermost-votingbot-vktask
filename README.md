@@ -10,11 +10,14 @@ git clone https://github.com/byTheTV/https://github.com/byTheTV/mattermost-votin
 cp .env.sample .env
 ```
 
-3. Заполните .env
-MATTERMOST_URL=http://your-mattermost-server:8065
-BOT_TOKEN=your_bot_token_here
-TARANTOOL_ADDR=tarantool:3301
-
+3. Настройка .env
+   - Запустите программу
+   - Зарегистрируйтесь в Mattermost
+   - Разрешите создание ботов: System Console -> Bot Account (Integration)
+   - Создайте бота: Integrations -> Bot Accounts
+   - Получите BOT_TOKEN
+   - Вставьте токен в файл .env
+   - Перезапустите приложение
 
 ## Запуск: 
 ```bash
@@ -25,3 +28,17 @@ docker-compose up --build -d
 ```bash
 docker-compose logs -f app
 ```
+
+## Команды бота
+
+- /poll Вопрос Вариант1 Вариант2 Вариант3 - Создать новое голосование
+- /vote [poll_id] [option_index] - Проголосовать (нумерация вариантов начинается с 1)
+- /results [poll_id] - Посмотреть текущие результаты
+- /close [poll_id] - Завершить голосование
+- /delete_poll [poll_id] - Удалить голосование
+- /polls - Показать список всех голосований
+
+P.S. Если что по оформлению команд бот всё подскажет
+
+ <3 thetv
+
