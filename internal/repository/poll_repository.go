@@ -88,6 +88,9 @@ func (r *TarantoolPollRepo) GetPollsByChannel(channelID string) ([]*models.Poll,
     var polls []*models.Poll
     for _, item := range resp {
         data := item.([]interface{})
+		if active, ok := data[ActiveStatus].(bool); !ok || !active {  
+			continue  
+		}	
         options := strings.Split(data[2].(string), OptionSep)
         polls = append(polls, &models.Poll{
             ID:        data[0].(string),

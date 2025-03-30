@@ -14,6 +14,7 @@ func HandleListPolls(s service.PollService, bot *models.Bot, post *model.Post) {
 	polls, err := s.ListPolls(post.ChannelId)
 	if err != nil {
 		replyToPost(bot, post, "❌ Ошибка получения списка опросов")
+		bot.Logger.Error("Ошибка получения списка опросов у пользователя")
 		return
 	}
 
@@ -35,4 +36,6 @@ func HandleListPolls(s service.PollService, bot *models.Bot, post *model.Post) {
 	}
 
 	SendMessageToChannel(bot, post.ChannelId, sb.String())
+	bot.Logger.Info("Выведены все активные опросы")
+
 }

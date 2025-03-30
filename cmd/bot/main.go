@@ -58,12 +58,13 @@ func main() {
 	pollService := service.NewVotingService(pollRepo, voteRepo)
 
 	// Инициализация CommandManager
-	cmdManager := manager.NewCommandManager(pollService) 
+	managerLogger := logger.Component("manager")
+	cmdManager := manager.NewCommandManager(pollService, managerLogger) 
 
 	// Настройка бота Mattermost
 	botLogger := logger.Component("bot")
 	bot, err := models.NewBot(cfg.MattermostURL, cfg.BotToken, botLogger)
-	
+
 	if err != nil {
 		log.Fatal("Mattermost bot creation error", zap.Error(err))
 	}
