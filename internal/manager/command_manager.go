@@ -34,6 +34,8 @@ func (cm *CommandManager) ProcessCommand(bot *models.Bot, post *model.Post) {
 	}
 
 	switch parts[0] {
+	case "/delete_poll":
+		handlers.HandleDeletePoll(cm.service, bot, post, parts[1:])
 	case "/poll":
 		handlers.HandleCreatePoll(cm.service, bot, post, parts[1:])
 	case "/vote":
@@ -44,5 +46,6 @@ func (cm *CommandManager) ProcessCommand(bot *models.Bot, post *model.Post) {
 		handlers.HandleClosePoll(cm.service, bot, post, parts[1:])
 	case "/polls":
 		handlers.HandleListPolls(cm.service, bot, post)
+
 	}
 }

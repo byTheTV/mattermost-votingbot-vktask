@@ -3,16 +3,17 @@ package repository
 import (
 	"fmt"
 	"strings"
-	
+
 	"mattermost-bot/internal/models"
+
 	"github.com/tarantool/go-tarantool/v2"
 )
 
 const (
-	PollSpace     = "polls"
-	VotesSpace    = "votes"
-	OptionSep     = "|"
-	ActiveStatus  = 5
+	PollSpace    = "polls"
+	VotesSpace   = "votes"
+	OptionSep    = "|"
+	ActiveStatus = 5
 )
 
 type PollRepository interface {
@@ -20,6 +21,7 @@ type PollRepository interface {
 	GetPoll(pollID string) (*models.Poll, error)
 	ClosePoll(pollID string) error
 	GetPollsByChannel(channelID string) ([]*models.Poll, error)
+	DeletePoll(pollID string) error
 }
 
 type TarantoolPollRepo struct {
@@ -45,6 +47,18 @@ func (r *TarantoolPollRepo) CreatePoll(poll *models.Poll) error {
 	return err
 }
 
+func (r *TarantoolPollRepo) DeletePoll(pollID string) error {
+	_, err := r.conn.Do(
+		tarantool.NewDeleteRequest(PollSpace).
+			Key([]interface{}{pollID}),
+	).Get()
+
+	if err != nil {
+		return fmt.Errorf("ошибка удаления опроса: %w", err)
+	}
+	return nil
+}
+
 func (r *TarantoolPollRepo) GetPoll(pollID string) (*models.Poll, error) {
 	resp, err := r.conn.Do(
 		tarantool.NewCallRequest("box.space.polls:get").Args([]interface{}{pollID}),
@@ -66,40 +80,40 @@ func (r *TarantoolPollRepo) GetPoll(pollID string) (*models.Poll, error) {
 }
 
 func (r *TarantoolPollRepo) ClosePoll(pollID string) error {
-    _, err := r.conn.Do(
-        tarantool.NewUpdateRequest("polls").
-            Key([]interface{}{pollID}).
-            Operations(tarantool.NewOperations().Assign(5, false)), // 5 — индекс поля "active"
-    ).Get()
-    return err
+	_, err := r.conn.Do(
+		tarantool.NewUpdateRequest("polls").
+			Key([]interface{}{pollID}).
+			Operations(tarantool.NewOperations().Assign(5, false)), // 5 — индекс поля "active"
+	).Get()
+	return err
 }
 
 func (r *TarantoolPollRepo) GetPollsByChannel(channelID string) ([]*models.Poll, error) {
-    resp, err := r.conn.Do(
-        tarantool.NewSelectRequest("polls").
-            Index("channel"). // Указываем индекс
-            Key([]interface{}{channelID}),
-    ).Get()
+	resp, err := r.conn.Do(
+		tarantool.NewSelectRequest("polls").
+			Index("channel"). // Указываем индекс
+			Key([]interface{}{channelID}),
+	).Get()
 
-    if err != nil {
-        return nil, fmt.Errorf("ошибка получения опросов: %w", err)
-    }
+	if err != nil {
+		return nil, fmt.Errorf("ошибка получения опросов: %w", err)
+	}
 
-    var polls []*models.Poll
-    for _, item := range resp {
-        data := item.([]interface{})
-		if active, ok := data[ActiveStatus].(bool); !ok || !active {  
-			continue  
-		}	
-        options := strings.Split(data[2].(string), OptionSep)
-        polls = append(polls, &models.Poll{
-            ID:        data[0].(string),
-            Question:  data[1].(string),
-            Options:   options,
-            CreatedBy: data[3].(string),
-            ChannelID: data[4].(string),
-            Active:    data[5].(bool),
-        })
-    }
-    return polls, nil
+	var polls []*models.Poll
+	for _, item := range resp {
+		data := item.([]interface{})
+		if active, ok := data[ActiveStatus].(bool); !ok || !active {
+			continue
+		}
+		options := strings.Split(data[2].(string), OptionSep)
+		polls = append(polls, &models.Poll{
+			ID:        data[0].(string),
+			Question:  data[1].(string),
+			Options:   options,
+			CreatedBy: data[3].(string),
+			ChannelID: data[4].(string),
+			Active:    data[5].(bool),
+		})
+	}
+	return polls, nil
 }
