@@ -27,7 +27,8 @@ type PollService interface {
 	// Обновление голоса пользователя
 	UpdateVote(pollID, userID string, optionIdx int) error
 
-	DeletePoll(pollID, userID string) error
+	DeletePoll(pollID, user_id string) error
+	//	DeletePoll(pollID, userID string) error
 }
 
 // PollResults содержит результаты голосования

@@ -93,14 +93,13 @@ func (s *VotingService) UpdateVote(pollID, userID string, optionIdx int) error {
 	return s.voteRepo.UpdateVote(pollID, userID, optionIdx)
 }
 
-// Добавьте этот метод в структуру VotingService
-func (s *VotingService) DeletePoll(pollID, userID string) error {
+func (s *VotingService) DeletePoll(pollID, user_id string) error {
 	poll, err := s.pollRepo.GetPoll(pollID)
 	if err != nil {
 		return fmt.Errorf("опрос не найден: %w", err)
 	}
 
-	if poll.CreatedBy != userID {
+	if poll.CreatedBy != user_id {
 		return fmt.Errorf("недостаточно прав для удаления")
 	}
 
