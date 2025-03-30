@@ -3,6 +3,7 @@ package models
 import (
     "fmt"
     "log"
+    "time"
     "strings"
     "github.com/mattermost/mattermost-server/v6/model"
 )
@@ -11,31 +12,28 @@ type Bot struct {
 	Client *model.Client4         // Клиент для REST API Mattermost
 	Ws     *model.WebSocketClient // WebSocket-клиент для реальных событий
 	User   *model.User            // Информация о самом боте
+    URL    string                 // URL сервера Mattermost
+    Token  string                 // Токен бота
 }
 
 func NewBot(serverURL, token string) (*Bot, error) {
-    // Преобразуем HTTP URL в WebSocket URL
-    wsURL := convertToWebsocketURL(serverURL)
-
     client := model.NewAPIv4Client(serverURL)
     client.SetToken(token)
+    
 
     user, _, err := client.GetMe("")
     if err != nil {
         return nil, fmt.Errorf("ошибка авторизации: %v", err)
     }
 
-    ws, err := model.NewWebSocketClient4(wsURL, token)
-    if err != nil {
-        return nil, fmt.Errorf("ошибка WebSocket: %v", err)
-    }
-
     return &Bot{
         Client: client,
-        Ws:     ws,
+        URL:    serverURL,
+        Token:  token,
         User:   user,
     }, nil
 }
+
 
 // Преобразование URL для WebSocket
 func convertToWebsocketURL(serverURL string) string {
@@ -48,19 +46,43 @@ func convertToWebsocketURL(serverURL string) string {
     return serverURL 
 }
 
-// Listen запускает прослушивание событий через WebSocket
-func (b *Bot) Listen(eventChan chan *model.WebSocketEvent) {
-    b.Ws.Listen()
-    
-    go func() {
-        for {
-            select {
-            case event := <-b.Ws.EventChannel:
-                eventChan <- event
-            case <-b.Ws.PingTimeoutChannel:
-                log.Println("Соединение с WebSocket разорвано")
-                return
-            }
+func (b *Bot) Listen(eventChan chan<- *model.WebSocketEvent) {
+    for {
+        wsURL := convertToWebsocketURL(b.URL)
+        ws, err := model.NewWebSocketClient4(wsURL, b.Token)
+        if err != nil {
+            log.Printf("Ошибка подключения WebSocket: %v. Повтор через 5 секунд...", err)
+            time.Sleep(5 * time.Second)
+            continue
         }
-    }()
+        b.Ws = ws
+
+        log.Println("WebSocket подключен")
+        ws.Listen()
+
+        // Обработчик событий
+        go func() {
+            defer ws.Close()
+            for {
+                select {
+                case event, ok := <-ws.EventChannel:
+                    if !ok {
+                        log.Println("Канал событий закрыт")
+                        return
+                    }
+                    eventChan <- event
+                case <-ws.PingTimeoutChannel:
+                    log.Println("Таймаут пинга, переподключение...")
+                    return
+                case <-ws.ResponseChannel:
+                    // Игнорируем ответы
+                }
+            }
+        }()
+
+        // Ждем разрыва соединения
+        <-ws.PingTimeoutChannel
+        log.Println("Переподключение через 2 секунды...")
+        time.Sleep(2 * time.Second)
+    }
 }
