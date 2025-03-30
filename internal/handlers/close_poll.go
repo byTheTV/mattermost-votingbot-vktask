@@ -19,5 +19,5 @@ func HandleClosePoll(s service.PollService, bot *models.Bot, post *model.Post, a
 		return
 	}
 
-	replyToPost(bot, post, "🔒 Опрос закрыт. Используйте /results для просмотра итогов")
+	SendMessageToChannel(bot, post.ChannelId, "🔒 Опрос закрыт. Используйте /results для просмотра итогов")
 }

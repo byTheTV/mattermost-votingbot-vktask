@@ -29,7 +29,7 @@ func HandleCreatePoll(s service.PollService, bot *models.Bot, post *model.Post, 
 		sb.WriteString(fmt.Sprintf("%d. %s\n", i+1, opt))
 	}
 
-	replyToPost(bot, post, fmt.Sprintf(
+	SendMessageToChannel(bot, post.ChannelId, fmt.Sprintf(
 		"📊 **Новый опрос!**\nВопрос: %s\nВарианты:\n%sID: `%s`",
 		poll.Question,
 		sb.String(),

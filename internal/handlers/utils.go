@@ -31,6 +31,20 @@ func replyToPost(bot *botModel.Bot, post *model.Post, message string) {
     }
 }
 
+// SendMessageToChannel отправляет сообщение в указанный канал
+func SendMessageToChannel(bot *botModel.Bot, channelID string, message string) {
+    post := &model.Post{
+        ChannelId: channelID,
+        Message:   message,
+    }
+
+    if _, _, err := bot.Client.CreatePost(post); err != nil {
+        log.Printf("[ERROR] Ошибка отправки сообщения в канал: %v", err)
+    }
+}
+
+
+
 // ValidatePoll проверяет существование и активность опроса
 func ValidatePoll(poll *botModel.Poll, pollID string) error {
     if poll == nil {

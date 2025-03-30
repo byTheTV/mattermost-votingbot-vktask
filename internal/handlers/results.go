@@ -30,5 +30,5 @@ func HandleResults(s service.PollService, bot *models.Bot, post *model.Post, arg
 	}
 
 	sb.WriteString(fmt.Sprintf("\nВсего участников: %d", len(results.Votes)))
-	replyToPost(bot, post, sb.String())
+	SendMessageToChannel(bot, post.ChannelId, sb.String())
 }

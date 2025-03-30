@@ -34,5 +34,5 @@ func HandleListPolls(s service.PollService, bot *models.Bot, post *model.Post) {
 		))
 	}
 
-	replyToPost(bot, post, sb.String())
+	SendMessageToChannel(bot, post.ChannelId, sb.String())
 }
