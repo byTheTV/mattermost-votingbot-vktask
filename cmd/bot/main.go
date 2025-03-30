@@ -3,12 +3,15 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
     "time"
-    
+
+
+	
+    "go.uber.org/zap"
+	"mattermost-bot/internal/logger"
 	"mattermost-bot/internal/config"
 	"mattermost-bot/internal/manager" 
 	"mattermost-bot/internal/models"
@@ -19,6 +22,11 @@ import (
 )
 
 func main() {
+	logger.Init()
+	defer logger.L().Sync()
+
+	log := logger.Component("main")
+
 	cfg := config.Load()
 
 	// Подключение к Tarantool
@@ -28,19 +36,20 @@ func main() {
 		Password: "",
 	}
 
+	log.Info("Starting application")
+
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
 	conn, err := tarantool.Connect(ctx, dialer, tarantool.Opts{})
 	if err != nil {
-		log.Fatal("Connection error:", err)
+		log.Fatal("Connection error:", zap.Error(err))
 	}
 	defer conn.Close()
 
-	log.Println("Successfully connected!")
+	log.Info("Successfully connected!")
 
 	
-
 	// Инициализация репозиториев
 	pollRepo := repository.NewTarantoolPollRepo(conn)
 	voteRepo := repository.NewTarantoolVoteRepo(conn)
@@ -52,9 +61,11 @@ func main() {
 	cmdManager := manager.NewCommandManager(pollService) 
 
 	// Настройка бота Mattermost
-	bot, err := models.NewBot(cfg.MattermostURL, cfg.BotToken)
+	botLogger := logger.Component("bot")
+	bot, err := models.NewBot(cfg.MattermostURL, cfg.BotToken, botLogger)
+	
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Mattermost bot creation error", zap.Error(err))
 	}
 	defer bot.Ws.Close()
 
@@ -73,10 +84,9 @@ func main() {
 				var post model.Post
 				err := json.Unmarshal([]byte(event.GetData()["post"].(string)), &post)
 				if err != nil {
-					log.Printf("Ошибка парсинга сообщения: %v", err)
+					log.Error("Ошибка парсинга сообщения", zap.Error(err))
 					continue
 				}
-				// Заменяем handleCommand на вызов менеджера
 				cmdManager.ProcessCommand(bot, &post)
 			}
 		}
@@ -84,6 +94,6 @@ func main() {
 
 	// Ожидание сигнала завершения
 	<-sigChan
-	log.Println("Завершение работы...")
+	log.Info("Завершение работы...")
 	close(eventChan)
 }
