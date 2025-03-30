@@ -11,8 +11,8 @@ services:
       - app-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U mmuser -d mattermost"]
-      interval: 10s
-      timeout: 5s
+      interval: 2s
+      timeout: 1s
       retries: 5
 
   mattermost:
@@ -30,6 +30,11 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8065"]
+      interval: 5s
+      timeout: 1s
+      retries: 3
 
   tarantool:
     image: tarantool/tarantool:2.10
@@ -45,26 +50,25 @@ services:
     healthcheck:
       test: ["CMD", "tarantoolctl", "connect", "127.0.0.1:3301", "--eval", "return box.space.polls ~= nil"]
       interval: 10s
-      timeout: 5s
+      timeout: 3s
       retries: 5
 
   app:
-    image: golang:1.21
-    working_dir: /app
-    volumes:
-      - .:/app
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    env_file: 
+      - .env
     environment:
       TARANTOOL_ADDR: "tarantool:3301"
       MATTERMOST_URL: "http://mattermost:8065"
       BOT_TOKEN: ${BOT_TOKEN}
-    command: sh -c "go mod download && go run cmd/bot/main.go"
     networks:
       - app-network
     depends_on:
       mattermost:
         condition: service_healthy
-      tarantool:
-        condition: service_healthy
+    restart: unless-stopped
 
 networks:
   app-network:

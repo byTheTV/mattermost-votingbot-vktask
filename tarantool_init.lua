@@ -21,10 +21,13 @@ box.space.polls:create_index('primary', {
     if_not_exists = true
 })
 
-box.space.polls:create_index('channel', {
-    parts = {'channel_id'},
-    if_not_exists = true,
-})
+if not box.space.polls.index.channel then
+    box.space.polls:create_index('channel', {
+        parts = {'channel_id'},
+        unique = false,
+        if_not_exists = true
+    })
+end
 
 -- votes
 box.schema.space.create('votes', { if_not_exists = true })

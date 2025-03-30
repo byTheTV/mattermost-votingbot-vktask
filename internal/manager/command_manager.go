@@ -12,37 +12,37 @@ import (
 )
 
 type CommandManager struct {
-    service service.PollService
-    logger *zap.Logger
+	service service.PollService
+	logger  *zap.Logger
 }
 
 func NewCommandManager(service service.PollService, logger *zap.Logger) *CommandManager {
-    return &CommandManager{
-        service: service,
-        logger:      logger.With(zap.String("component", "command_manager")),
-    }
+	return &CommandManager{
+		service: service,
+		logger:  logger.With(zap.String("component", "command_manager")),
+	}
 }
 
 func (cm *CommandManager) ProcessCommand(bot *models.Bot, post *model.Post) {
-    
-    cm.logger.Info("Процессим команду...")
 
-    parts := strings.Fields(post.Message)
-    if len(parts) == 0 {
-        
-        return
-    }   
-    
-    switch parts[0] {
-    case "/poll":
-        handlers.HandleCreatePoll(cm.service, bot, post, parts[1:])
-    case "/vote":
-        handlers.HandleVote(cm.service, bot, post, parts[1:])
-    case "/results":
-        handlers.HandleResults(cm.service, bot, post, parts[1:])
-    case "/close":
-        handlers.HandleClosePoll(cm.service, bot, post, parts[1:])
-    case "/polls":
-        handlers.HandleListPolls(cm.service, bot, post)
-    }
+	cm.logger.Info("Процессим команду...")
+
+	parts := strings.Fields(post.Message)
+	if len(parts) == 0 {
+
+		return
+	}
+
+	switch parts[0] {
+	case "/poll":
+		handlers.HandleCreatePoll(cm.service, bot, post, parts[1:])
+	case "/vote":
+		handlers.HandleVote(cm.service, bot, post, parts[1:])
+	case "/results":
+		handlers.HandleResults(cm.service, bot, post, parts[1:])
+	case "/close":
+		handlers.HandleClosePoll(cm.service, bot, post, parts[1:])
+	case "/polls":
+		handlers.HandleListPolls(cm.service, bot, post)
+	}
 }
