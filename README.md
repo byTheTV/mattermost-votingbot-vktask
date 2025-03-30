@@ -11,17 +11,25 @@ cp .env.sample .env
 ```
 
 3. Настройка .env
-   - Запустите программу
+   - Запустить mattermost + tarantool
    - Зарегистрируйтесь в Mattermost
    - Разрешите создание ботов: System Console -> Bot Account (Integration)
    - Создайте бота: Integrations -> Bot Accounts
    - Получите BOT_TOKEN
    - Вставьте токен в файл .env
-   - Перезапустите приложение
+
+4. Запустить бота
 
 ## Запуск: 
+
+1. Запустить mattermost + tarantool
 ```bash
-docker-compose up --build -d
+docker-compose up --build mattermost tarantool -d
+```
+
+2. Запустить бота
+```bash
+docker-compose up --build app -d
 ```
 
 ### Логи бота
