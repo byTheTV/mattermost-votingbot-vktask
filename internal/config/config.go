@@ -9,7 +9,7 @@ type Config struct {
 func Load() *Config {
 	return &Config{
 		MattermostURL: "http://localhost:8065",
-		BotToken:      "f9zwqh7rsfrb9n5iymeng95rbo",
+		BotToken:      "cjrfc5yy8bbj9ff4j3wnb34the",
 		TarantoolAddr: "localhost:3301",
 	}
 }

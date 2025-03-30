@@ -23,8 +23,8 @@ func (cm *CommandManager) ProcessCommand(bot *models.Bot, post *model.Post) {
     parts := strings.Fields(post.Message)
     if len(parts) == 0 {
         return
-    }
-
+    }   
+    
     switch parts[0] {
     case "/poll":
         handlers.HandleCreatePoll(cm.service, bot, post, parts[1:])
