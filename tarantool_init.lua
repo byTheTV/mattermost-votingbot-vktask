@@ -16,9 +16,14 @@ box.space.polls:format({
     { name = 'active',     type = 'boolean' },
 })
 box.space.polls:create_index('primary', {
-    parts = {1, 'string'},
+    parts = {'id'},
     unique = true,
     if_not_exists = true
+})
+
+box.space.polls:create_index('channel', {
+    parts = {'channel_id'},
+    if_not_exists = true,
 })
 
 -- votes
@@ -29,9 +34,11 @@ box.space.votes:format({
     { name = 'option_idx', type = 'unsigned' },
 })
 box.space.votes:create_index('primary', {
-    parts = {{1, 'string'}, {2, 'string'}},
+    parts = {'poll_id', 'user_id'},
     unique = true,
     if_not_exists = true
 })
+
+box.space.votes:create_index('poll_id', {parts = {'poll_id'}, if_not_exists = true}) 
 
 print("Tarantool initialization completed!")

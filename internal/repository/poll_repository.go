@@ -76,8 +76,9 @@ func (r *TarantoolPollRepo) ClosePoll(pollID string) error {
 
 func (r *TarantoolPollRepo) GetPollsByChannel(channelID string) ([]*models.Poll, error) {
     resp, err := r.conn.Do(
-        tarantool.NewCallRequest("box.space.polls.index.channel:select").
-            Args([]interface{}{channelID}),
+        tarantool.NewSelectRequest("polls").
+            Index("channel"). // Указываем индекс
+            Key([]interface{}{channelID}),
     ).Get()
 
     if err != nil {
@@ -87,7 +88,7 @@ func (r *TarantoolPollRepo) GetPollsByChannel(channelID string) ([]*models.Poll,
     var polls []*models.Poll
     for _, item := range resp {
         data := item.([]interface{})
-        options := strings.Split(data[2].(string), "|")
+        options := strings.Split(data[2].(string), OptionSep)
         polls = append(polls, &models.Poll{
             ID:        data[0].(string),
             Question:  data[1].(string),

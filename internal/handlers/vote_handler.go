@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"strconv"
-
+	"log"
 	"mattermost-bot/internal/service"
 	"mattermost-bot/internal/models"
 	
@@ -21,6 +21,7 @@ func HandleVote(s service.PollService, bot *models.Bot, post *model.Post, args [
 		replyToPost(bot, post, "❌ Некорректный номер варианта")
 		return
 	}
+	log.Println("Выбранный номер варианта корректен", optionIdx)
 
 	// Проверка существования опроса
 	poll, err := s.GetPoll(pollID)
@@ -28,6 +29,8 @@ func HandleVote(s service.PollService, bot *models.Bot, post *model.Post, args [
 		replyToPost(bot, post, "❌ Опрос не найден")
 		return
 	}
+	log.Println("Выбранный опрос существует", poll)
+
 
 	if !poll.Active {
 		replyToPost(bot, post, "❌ Опрос закрыт")
@@ -40,6 +43,7 @@ func HandleVote(s service.PollService, bot *models.Bot, post *model.Post, args [
 		replyToPost(bot, post, "❌ Ошибка голосования: "+err.Error())
 		return
 	}
+	
 
 	replyToPost(bot, post, "✅ Ваш голос учтён!")
 }

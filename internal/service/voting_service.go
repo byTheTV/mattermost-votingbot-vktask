@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+    "log"
 	"mattermost-bot/internal/models"
 	"mattermost-bot/internal/repository"
 )
@@ -42,7 +43,9 @@ func (s *VotingService) ClosePoll(pollID, userID string) error {
 }
 
 func (s *VotingService) Vote(pollID, userID string, optionIdx int) error {
-    exists, _, err := s.voteRepo.GetVote(pollID, userID)
+    exists, vote, err := s.voteRepo.GetVote(pollID, userID)
+    log.Println(vote)
+
     if err != nil {
         return fmt.Errorf("ошибка проверки голоса: %w", err)
     }

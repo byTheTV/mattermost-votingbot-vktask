@@ -15,5 +15,5 @@ type Poll struct {
 
 // NewId генерирует уникальный ID для опроса
 func NewId() string {
-    return uuid.New().String() // Использует UUID v4
+    return uuid.New().String()
 }

@@ -48,13 +48,6 @@ func main() {
 	// Сервисный слой
 	pollService := service.NewVotingService(pollRepo, voteRepo)
 
-	/*
-    schemaManager := repository.NewSchemaManager(conn)
-    if err := schemaManager.Init(); err != nil {
-        log.Fatal("Ошибка инициализации схемы:", err)
-    }
-	*/
-
 	// Инициализация CommandManager
 	cmdManager := manager.NewCommandManager(pollService) 
 

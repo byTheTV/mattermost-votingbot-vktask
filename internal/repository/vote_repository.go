@@ -24,8 +24,8 @@ func NewTarantoolVoteRepo(conn *tarantool.Connection) *TarantoolVoteRepo {
 func (r *TarantoolVoteRepo) CreateVote(pollID, userID string, optionIdx int) error {
     _, err := r.conn.Do(
         tarantool.NewInsertRequest("votes").Tuple([]interface{}{
-            pollID,
-            userID,
+            pollID, 
+            userID, 
             optionIdx,
         }),
     ).Get()
@@ -42,27 +42,38 @@ func (r *TarantoolVoteRepo) UpdateVote(pollID, userID string, optionIdx int) err
 }
 
 func (r *TarantoolVoteRepo) GetVote(pollID, userID string) (bool, *model.Vote, error) {
-    resp, err := r.conn.Do(
-        tarantool.NewCallRequest("box.space.votes:get").Args([]interface{}{pollID, userID}),
+    data, err := r.conn.Do(
+        tarantool.NewSelectRequest("votes").
+            Index("primary").
+            Key([]interface{}{pollID, userID}),
     ).Get()
 
-    if err != nil || len(resp) == 0 {
-        return false, nil, err
+    if err != nil {
+        return false, nil, fmt.Errorf("ошибка запроса: %w", err)
     }
 
-    data := resp[0].([]interface{})
-    vote := &model.Vote{
-        PollID:    data[0].(string),
-        UserID:    data[1].(string),
-        OptionIdx: int(data[2].(int64)),
+    if len(data) == 0 {
+        return false, nil, nil
     }
+
+    // Type assertion for the first tuple in response
+    tuple := data[0].([]interface{})
+    vote := &model.Vote{
+        PollID:    tuple[0].(string),
+        UserID:    tuple[1].(string),
+        OptionIdx: int(tuple[2].(int8)),
+    }
+
     return true, vote, nil
 }
 
+
+
 func (r *TarantoolVoteRepo) GetVotes(pollID string) ([]*model.Vote, error) {
     resp, err := r.conn.Do(
-        tarantool.NewCallRequest("box.space.votes.index.poll_id:select").
-            Args([]interface{}{pollID}),
+        tarantool.NewSelectRequest("votes").
+            Index("poll_id"). // Используем индекс poll_id
+            Key([]interface{}{pollID}),
     ).Get()
 
     if err != nil {
@@ -75,7 +86,7 @@ func (r *TarantoolVoteRepo) GetVotes(pollID string) ([]*model.Vote, error) {
         votes = append(votes, &model.Vote{
             PollID:    data[0].(string),
             UserID:    data[1].(string),
-            OptionIdx: int(data[2].(int64)),
+            OptionIdx: int(data[2].(int8)),
         })
     }
     return votes, nil
